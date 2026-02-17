@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DB="${1:-$HOME/InventoryTrack/InventoryTrack.db}"
+DB="${1:-$HOME/InventoryTrack/db/InventoryTrack.db}"
+
+if [[ ! -f "$DB" ]]; then
+  echo "ERROR: Database not found at $DB"
+  exit 1
+fi
+
 STAMP="$(date +%Y-%m-%d_%H%M%S)"
 BACKDIR="$HOME/Backups/InventoryTrack"
 BACKUP="$BACKDIR/InventoryTrack_${STAMP}.db"
@@ -26,8 +32,6 @@ DELETE FROM purchase_lines;
 DELETE FROM purchases;
 
 DELETE FROM import_files;
-
-DELETE FROM sqlite_sequence;
 
 COMMIT;
 PRAGMA foreign_keys = ON;
