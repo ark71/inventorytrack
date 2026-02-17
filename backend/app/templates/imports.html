@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}InventoryTrack - Imports
+
+{% block content %}
+  <div class="page">
+  <h1>Imports</h1>
+
+  <div class="row">
+    <div class="card" style="width:420px;">
+      <h2>ShopGoodwill XLSX</h2>
+      <form id="goodwillForm">
+        <input type="file" name="file" accept=".xlsx" required />
+        <div style="margin-top:10px">
+          <button type="submit">Import</button>
+        </div>
+      </form>
+      <h3>Result</h3>
+      <pre id="goodwillResult">{}</pre>
+    </div>
+
+    <div class="card" style="width:420px;">
+      <h2>eBay Sold CSV</h2>
+      <form id="ebayForm">
+        <input type="file" name="file" accept=".csv,text/csv" required />
+        <div style="margin-top:10px">
+          <button type="submit">Import</button>
+        </div>
+      </form>
+      <h3>Result</h3>
+      <pre id="ebayResult">{}</pre>
+    </div>
+  </div>
+
+  <script>
+  async function postFile(url, formEl, outEl) {
+    const fd = new FormData(formEl);
+    outEl.textContent = "Uploading...";
+    const res = await fetch(url, { method: "POST", body: fd });
+    const txt = await res.text();
+    try { outEl.textContent = JSON.stringify(JSON.parse(txt), null, 2); }
+    catch { outEl.textContent = txt; }
+  }
+
+  document.getElementById("goodwillForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    postFile("/import/goodwill", e.target, document.getElementById("goodwillResult"));
+  });
+
+  document.getElementById("ebayForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    postFile("/import/ebay-sold", e.target, document.getElementById("ebayResult"));
+  });
+  </script>
+{% endblock %}
+
+  <div class="container">
+  <h1>Imports</h1>
+  <p><a href="/">← Home</a></p>
+
+  <div class="row">
+    <div class="card">
+      <h2>ShopGoodwill XLSX</h2>
+      <form id="goodwillForm">
+        <input type="file" name="file" accept=".xlsx" required />
+        <div style="margin-top:10px">
+          <button type="submit">Import</button>
+        </div>
+      </form>
+      <h3>Result</h3>
+      <pre id="goodwillResult">{}</pre>
+    </div>
+
+    <div class="card">
+      <h2>eBay Sold CSV</h2>
+      <form id="ebayForm">
+        <input type="file" name="file" accept=".csv,text/csv" required />
+        <div style="margin-top:10px">
+          <button type="submit">Import</button>
+        </div>
+      </form>
+      <h3>Result</h3>
+      <pre id="ebayResult">{}</pre>
+    </div>
+  </div>
+
+<script>
+async function postFile(url, formEl, outEl) {
+  const fd = new FormData(formEl);
+  outEl.textContent = "Uploading...";
+  const res = await fetch(url, { method: "POST", body: fd });
+  const txt = await res.text();
+  try { outEl.textContent = JSON.stringify(JSON.parse(txt), null, 2); }
+  catch { outEl.textContent = txt; }
+}
+
+document.getElementById("goodwillForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  postFile("/import/goodwill", e.target, document.getElementById("goodwillResult"));
+});
+
+document.getElementById("ebayForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  postFile("/import/ebay-sold", e.target, document.getElementById("ebayResult"));
+});
+</script>
+  </div>
+{% endblock %}

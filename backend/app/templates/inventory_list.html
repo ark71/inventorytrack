@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-4">
+  <h1 class="text-xl font-semibold">{{ page_title }}</h1>
+</div>
+
+<!-- Tabs -->
+<div class="flex gap-2 mb-4">
+  <a href="/inventory/needs-split"
+     class="px-3 py-2 rounded border {{ 'bg-gray-900 text-white' if active_tab=='needs_split' else 'bg-white' }}">
+    Needs Split
+  </a>
+
+  <a href="/inventory/unlisted"
+     class="px-3 py-2 rounded border {{ 'bg-gray-900 text-white' if active_tab=='unlisted' else 'bg-white' }}">
+    Unlisted
+  </a>
+</div>
+
+<!-- Table -->
+<div class="overflow-auto border rounded">
+  <table class="min-w-full text-sm">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="text-left p-2">ID</th>
+        <th class="text-left p-2">Title</th>
+        <th class="text-left p-2">SKU</th>
+        <th class="text-left p-2">Category</th>
+        <th class="text-left p-2">Cost</th>
+        <th class="text-left p-2">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for it in items %}
+      <tr class="border-t">
+        <td class="p-2">{{ it.id }}</td>
+        <td class="p-2">{{ it.title }}</td>
+        <td class="p-2">{{ it.sku or '' }}</td>
+        <td class="p-2">{{ it.category or '' }}</td>
+        <td class="p-2">
+          {% if it.cost_total is not none %}${{ "%.2f"|format(it.cost_total) }}{% endif %}
+        </td>
+        <td class="p-2">{{ it.status }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td class="p-3 text-gray-500" colspan="6">No items found.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
+

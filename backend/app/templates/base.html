@@ -1,0 +1,37 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}InventoryTrack{% endblock %}</title>
+
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/theme.js"></script>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        <span class="brand-name">InventoryTrack</span>
+      </div>
+
+      <nav class="nav">
+        <a class="navlink {% if active_page=='home' %}active{% endif %}" href="/">Home</a>
+        <a class="navlink {% if active_page=='imports' %}active{% endif %}" href="/imports">Imports</a>
+        <a class="navlink {% if active_page=='inventory' %}active{% endif %}" href="/inventory">Inventory</a>
+      </nav>
+
+      <div class="topbar-right">
+        <!-- placeholder for later: theme picker / search / user -->
+        <span class="small">Local</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

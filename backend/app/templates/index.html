@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}InventoryTrack{% endblock %}
+
+{% block content %}
+  <div class="page">
+    <h1 style="margin-top:0;">Welcome</h1>
+    <p class="small">Local-only. Database file: <code>~/InventoryTrack/InventoryTrack.db</code></p>
+
+    <div style="margin-top:12px;">
+      <a class="navlink" href="/imports">Go to Imports</a>
+      <a class="navlink" href="/inventory">Go to Inventory</a>
+      <a class="navlink" href="/data/summary" target="_blank">DB Summary (JSON)</a>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtualenv
+.venv/
+venv/
+
+# Local database
+*.db
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editors
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Logs
+*.log
+
