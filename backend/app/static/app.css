@@ -115,31 +115,20 @@ a:hover { text-decoration: underline; }
 }
 
 .kpi-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: calc(var(--space) * 1.25);
   align-items: stretch;
-  overflow-x: auto;
-  padding-bottom: 4px; /* space for scrollbar */
-  scroll-snap-type: x mandatory;
-}
-
-.kpi-bar::-webkit-scrollbar { height: 10px; }
-.kpi-bar::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--primary) 25%, var(--border));
-  border-radius: 999px;
 }
 
 .kpi-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: calc(var(--space) * 1.1);
+  padding: clamp(10px, calc(var(--space) * 1.1), 16px);
   box-shadow:
     0 1px 0 rgba(255,255,255,0.04) inset,
     0 8px 24px rgba(0,0,0,0.25);
-  min-width: 220px;
-  flex: 1 0 220px;
-  scroll-snap-align: start;
   position: relative;
   overflow: hidden;
 }
@@ -160,14 +149,14 @@ a:hover { text-decoration: underline; }
 
 .kpi-label {
   color: var(--muted);
-  font-size: 12px;
+  font-size: clamp(11px, 1.1vw, 12px);
   font-weight: 600;
   letter-spacing: 0.2px;
   text-transform: uppercase;
 }
 
 .kpi-value {
-  font-size: 30px;
+  font-size: clamp(22px, 3.2vw, 30px);
   font-weight: 700;
   margin-top: 6px;
   margin-bottom: 2px;
@@ -176,7 +165,7 @@ a:hover { text-decoration: underline; }
 
 .kpi-sub {
   color: var(--muted);
-  font-size: 12px;
+  font-size: clamp(11px, 1.1vw, 12px);
   margin-top: 0;
 }
 
@@ -197,7 +186,7 @@ a:hover { text-decoration: underline; }
   background: color-mix(in srgb, var(--primary) 10%, transparent);
   color: var(--text);
   text-decoration: none;
-  font-size: 13px;
+  font-size: clamp(12px, 1.2vw, 13px);
   font-weight: 600;
 }
 .kpi-btn:hover {
