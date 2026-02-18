@@ -2,14 +2,225 @@
 {% block title %}InventoryTrack{% endblock %}
 
 {% block content %}
-  <div class="page">
-    <h1 style="margin-top:0;">Welcome</h1>
-    <p class="small">Local-only. Database file: <code>~/InventoryTrack/db/InventoryTrack.db</code></p>
-
-    <div style="margin-top:12px;">
-      <a class="navlink" href="/imports">Go to Imports</a>
-      <a class="navlink" href="/inventory">Go to Inventory</a>
-      <a class="navlink" href="/data/summary" target="_blank">DB Summary (JSON)</a>
+<div class="page">
+  <div style="display:flex; gap: 12px; align-items: baseline; flex-wrap: wrap;">
+    <h1 style="margin:0;">Dashboard</h1>
+    <div class="small" id="dbPath"></div>
+    <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+      <button id="refreshBtn" type="button">Refresh</button>
     </div>
   </div>
+
+  <div class="kpi-grid" style="margin-top: 12px;">
+    <div class="kpi-card">
+      <div class="small">Needs Split (containers)</div>
+      <div class="kpi-value" id="kpiNeedsSplit">—</div>
+      <div class="small"><a href="/inventory?view=needs_split">Open</a></div>
+    </div>
+    <div class="kpi-card">
+      <div class="small">Unlisted (total)</div>
+      <div class="kpi-value" id="kpiUnlistedTotal">—</div>
+      <div class="small"><a href="/inventory?view=unlisted">Open</a></div>
+    </div>
+    <div class="kpi-card">
+      <div class="small">Unlisted missing SKU/Location</div>
+      <div class="kpi-value" id="kpiUnlistedMissing">—</div>
+      <div class="small"><a href="/inventory?view=unlisted">Fix now</a></div>
+    </div>
+    <div class="kpi-card">
+      <div class="small">Inventory items (total)</div>
+      <div class="kpi-value" id="kpiInventoryTotal">—</div>
+      <div class="small"><a href="/inventory">Open</a></div>
+    </div>
+    <div class="kpi-card">
+      <div class="small">Purchases needing split</div>
+      <div class="kpi-value" id="kpiPurchasesNeedingSplit">—</div>
+      <div class="small"><a href="/purchases/needs_split" target="_blank" rel="noopener noreferrer">View JSON</a></div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top: 14px;">
+    <div class="card" style="flex: 1; min-width: 360px;">
+      <div style="display:flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <h2 style="margin:0;">Needs Split</h2>
+        <div class="small">Top containers</div>
+        <div style="margin-left:auto;" class="small"><a href="/inventory?view=needs_split">Open inventory view</a></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Container</th>
+              <th>Goodwill</th>
+              <th>Cost</th>
+            </tr>
+          </thead>
+          <tbody id="needsSplitBody">
+            <tr><td colspan="3">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="flex: 1; min-width: 360px;">
+      <div style="display:flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <h2 style="margin:0;">Unlisted (needs SKU/Location)</h2>
+        <div class="small">Top items missing fields</div>
+        <div style="margin-left:auto;" class="small"><a href="/inventory?view=unlisted">Open inventory view</a></div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Cost</th>
+              <th>SKU</th>
+              <th>Loc</th>
+            </tr>
+          </thead>
+          <tbody id="unlistedMissingBody">
+            <tr><td colspan="4">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 14px;">
+    <div style="display:flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+      <h2 style="margin:0;">Recent Imports</h2>
+      <div class="small">Last 10 files</div>
+      <div style="margin-left:auto;" class="small"><a href="/imports">Go to Imports</a></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Source</th>
+            <th>Filename</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="importsBody">
+          <tr><td colspan="4">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="statusMsg" class="small" style="margin-top: 12px;"></div>
+
+  <script>
+    function esc(s) {
+      return (s ?? "").toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;");
+    }
+
+    function money(v) {
+      if (v === null || v === undefined) return "—";
+      const n = Number(v);
+      if (Number.isNaN(n)) return "—";
+      return `$${n.toFixed(2)}`;
+    }
+
+    function setStatus(msg) {
+      const el = document.getElementById("statusMsg");
+      el.textContent = msg || "";
+    }
+
+    async function loadDashboard() {
+      setStatus("Loading...");
+
+      const res = await fetch("/api/dashboard");
+      const txt = await res.text();
+      let data = null;
+      try { data = JSON.parse(txt); } catch {}
+
+      if (!data || !data.ok) {
+        setStatus("Failed to load dashboard.");
+        return;
+      }
+
+      const k = data.kpis || {};
+      document.getElementById("kpiNeedsSplit").textContent = k.needs_split_containers ?? "—";
+      document.getElementById("kpiUnlistedTotal").textContent = k.unlisted_total ?? "—";
+      document.getElementById("kpiUnlistedMissing").textContent = k.unlisted_missing_sku_or_location ?? "—";
+      document.getElementById("kpiInventoryTotal").textContent = k.inventory_total ?? "—";
+      document.getElementById("kpiPurchasesNeedingSplit").textContent = k.purchases_needing_split ?? "—";
+
+      const dbPath = k.db_path ? `DB: ${k.db_path}` : "";
+      document.getElementById("dbPath").textContent = dbPath;
+
+      const needs = data.needs_split || [];
+      const needsBody = document.getElementById("needsSplitBody");
+      if (!needs.length) {
+        needsBody.innerHTML = `<tr><td colspan="3">No containers need split.</td></tr>`;
+      } else {
+        needsBody.innerHTML = needs.map(r => {
+          const title = `<b>${esc(r.title)}</b><div class="small">${esc(r.category || "")}<br>${esc(r.acquired_date || "")}</div>`;
+          const itemId = esc(r.goodwill_item_id || "");
+          const orderNum = esc(r.order_number || "");
+          const itemUrl = itemId ? `https://shopgoodwill.com/item/${itemId}` : "";
+          const orderUrl = orderNum ? `https://shopgoodwill.com/shopgoodwill/order/${orderNum}` : "";
+          const goodwill = `
+            <div class="small">
+              <div><b>Item:</b> ${itemId ? `<a href="${itemUrl}" target="_blank" rel="noopener noreferrer">${itemId}</a>` : "—"}</div>
+              <div><b>Order:</b> ${orderNum ? `<a href="${orderUrl}" target="_blank" rel="noopener noreferrer">${orderNum}</a>` : "—"}</div>
+            </div>
+          `;
+          return `<tr>
+            <td>${title}</td>
+            <td>${goodwill}</td>
+            <td>${money(r.cost_total)}</td>
+          </tr>`;
+        }).join("");
+      }
+
+      const unlisted = data.unlisted_missing || [];
+      const unlistedBody = document.getElementById("unlistedMissingBody");
+      if (!unlisted.length) {
+        unlistedBody.innerHTML = `<tr><td colspan="4">No unlisted items missing SKU/Location.</td></tr>`;
+      } else {
+        unlistedBody.innerHTML = unlisted.map(r => {
+          const title = `<b>${esc(r.title)}</b><div class="small">${esc(r.acquired_date || "")}</div>`;
+          const sku = esc(r.sku || "");
+          const loc = esc(r.location || "");
+          return `<tr>
+            <td>${title}</td>
+            <td>${money(r.cost_total)}</td>
+            <td class="small">${sku || "—"}</td>
+            <td class="small">${loc || "—"}</td>
+          </tr>`;
+        }).join("");
+      }
+
+      const imports = data.recent_imports || [];
+      const importsBody = document.getElementById("importsBody");
+      if (!imports.length) {
+        importsBody.innerHTML = `<tr><td colspan="4">No imports found.</td></tr>`;
+      } else {
+        importsBody.innerHTML = imports.map(r => {
+          const when = esc(r.imported_at || "");
+          const src = esc(r.source || "");
+          const fn = esc(r.filename || "");
+          const notes = esc(r.notes || "");
+          return `<tr>
+            <td class="small">${when || "—"}</td>
+            <td class="small">${src || "—"}</td>
+            <td>${fn || "—"}</td>
+            <td class="small">${notes || "—"}</td>
+          </tr>`;
+        }).join("");
+      }
+
+      setStatus("");
+    }
+
+    document.getElementById("refreshBtn").addEventListener("click", loadDashboard);
+    (async () => { await loadDashboard(); })();
+  </script>
+</div>
 {% endblock %}
