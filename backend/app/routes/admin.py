@@ -1,8 +1,48 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from ..db import db_connect
 from ..services.inventory_build import build_missing_inventory_items
 
 router = APIRouter()
+templates = Jinja2Templates(directory="backend/app/templates")
+
+
+@router.get("/admin", response_class=HTMLResponse)
+def admin_home(request: Request):
+	tools = [
+	    {
+	        "name": "Build Inventory",
+	        "desc": "Create inventory_items from purchase_lines",
+    	    "href": "/admin/inventory/build",
+        	"method": "POST",
+	    },
+    	{
+        	"name": "Imports",
+	        "desc": "Upload Goodwill + eBay data",
+    	    "href": "/imports",
+        	"method": "GET",
+	    },
+    	{
+        	"name": "Inventory",
+	        "desc": "Split lots, manage items",
+    	    "href": "/inventory",
+        	"method": "GET",
+	    },
+    	{
+        	"name": "API Docs",
+	        "desc": "FastAPI interactive documentation",
+    	    "href": "/docs",
+        	"method": "GET",
+	    },
+    	{
+        	"name": "Health Check",
+	        "desc": "Server health endpoint (/healthz)",
+    	    "href": "/healthz",
+        	"method": "GET",
+	    },
+	]
+
 
 @router.post("/admin/inventory/build")
 def admin_inventory_build():
