@@ -11,31 +11,50 @@
     </div>
   </div>
 
-  <div class="kpi-grid" style="margin-top: 12px;">
-    <div class="kpi-card">
-      <div class="small">Needs Split (containers)</div>
+  <div class="kpi-bar" style="margin-top: 12px;">
+    <div class="kpi-card kpi-warn">
+      <div class="kpi-label">Needs Split</div>
       <div class="kpi-value" id="kpiNeedsSplit">—</div>
-      <div class="small"><a href="/inventory?view=needs_split">Open</a></div>
+      <div class="kpi-sub">Containers waiting to be split</div>
+      <div class="kpi-actions">
+        <a class="kpi-btn" href="/inventory?view=needs_split">Open</a>
+      </div>
     </div>
+
     <div class="kpi-card">
-      <div class="small">Unlisted (total)</div>
+      <div class="kpi-label">Unlisted</div>
       <div class="kpi-value" id="kpiUnlistedTotal">—</div>
-      <div class="small"><a href="/inventory?view=unlisted">Open</a></div>
+      <div class="kpi-sub">Ready to SKU / store / list</div>
+      <div class="kpi-actions">
+        <a class="kpi-btn" href="/inventory?view=unlisted">Open</a>
+      </div>
     </div>
-    <div class="kpi-card">
-      <div class="small">Unlisted missing SKU/Location</div>
+
+    <div class="kpi-card kpi-danger">
+      <div class="kpi-label">Fix Now</div>
       <div class="kpi-value" id="kpiUnlistedMissing">—</div>
-      <div class="small"><a href="/inventory?view=unlisted">Fix now</a></div>
+      <div class="kpi-sub">Unlisted missing SKU or Location</div>
+      <div class="kpi-actions">
+        <a class="kpi-btn kpi-btn-primary" href="/inventory?view=unlisted">Fix now</a>
+      </div>
     </div>
+
     <div class="kpi-card">
-      <div class="small">Inventory items (total)</div>
+      <div class="kpi-label">Inventory</div>
       <div class="kpi-value" id="kpiInventoryTotal">—</div>
-      <div class="small"><a href="/inventory">Open</a></div>
+      <div class="kpi-sub">Total items in inventory</div>
+      <div class="kpi-actions">
+        <a class="kpi-btn" href="/inventory">Open</a>
+      </div>
     </div>
-    <div class="kpi-card">
-      <div class="small">Purchases needing split</div>
+
+    <div class="kpi-card kpi-accent">
+      <div class="kpi-label">Purchases</div>
       <div class="kpi-value" id="kpiPurchasesNeedingSplit">—</div>
-      <div class="small"><a href="/purchases/needs_split" target="_blank" rel="noopener noreferrer">View JSON</a></div>
+      <div class="kpi-sub">Purchases still needing split</div>
+      <div class="kpi-actions">
+        <a class="kpi-btn" href="/purchases/needs_split" target="_blank" rel="noopener noreferrer">View JSON</a>
+      </div>
     </div>
   </div>
 

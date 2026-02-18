@@ -114,17 +114,19 @@ a:hover { text-decoration: underline; }
   flex-wrap: wrap;
 }
 
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+.kpi-bar {
+  display: flex;
   gap: calc(var(--space) * 1.25);
+  align-items: stretch;
+  overflow-x: auto;
+  padding-bottom: 4px; /* space for scrollbar */
+  scroll-snap-type: x mandatory;
 }
 
-@media (max-width: 1100px) {
-  .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-@media (max-width: 760px) {
-  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.kpi-bar::-webkit-scrollbar { height: 10px; }
+.kpi-bar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 25%, var(--border));
+  border-radius: 999px;
 }
 
 .kpi-card {
@@ -135,16 +137,78 @@ a:hover { text-decoration: underline; }
   box-shadow:
     0 1px 0 rgba(255,255,255,0.04) inset,
     0 8px 24px rgba(0,0,0,0.25);
+  min-width: 220px;
+  flex: 1 0 220px;
+  scroll-snap-align: start;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: color-mix(in srgb, var(--primary) 65%, transparent);
+}
+
+.kpi-card.kpi-warn::before   { background: color-mix(in srgb, var(--warning) 85%, transparent); }
+.kpi-card.kpi-danger::before { background: color-mix(in srgb, var(--danger) 85%, transparent); }
+.kpi-card.kpi-accent::before { background: color-mix(in srgb, var(--accent) 85%, transparent); }
+
+.kpi-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
 }
 
 .kpi-value {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
   margin-top: 6px;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   letter-spacing: 0.3px;
 }
 
+.kpi-sub {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 0;
+}
+
+.kpi-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kpi-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border-radius: calc(var(--radius) - 6px);
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+.kpi-btn:hover {
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  text-decoration: none;
+}
+
+.kpi-btn-primary {
+  background: color-mix(in srgb, var(--primary) 22%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+}
 hr {
   border: none;
   border-top: 1px solid var(--border);
