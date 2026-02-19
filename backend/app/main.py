@@ -3,6 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
+from .routes import assets
 from .routes.pages import router as pages_router
 from .routes.api_inventory import router as api_inventory_router
 from .routes.api_imports import router as api_imports_router
@@ -19,6 +20,7 @@ app.include_router(api_inventory_router)
 app.include_router(api_imports_router)
 app.include_router(api_dashboard_router)
 app.include_router(admin_router)
+app.include_router(assets.router)
 
 @app.get("/healthz")
 def healthz():

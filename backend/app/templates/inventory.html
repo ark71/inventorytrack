@@ -4,9 +4,138 @@
 <div class="page" id="inventoryPage" data-view="{{ view }}">
   <h2>Inventory</h2>
 
+  <!-- Manual entry (collapsible) -->
+  <div class="card collapsible-card" id="manualCard">
+    <button
+      id="manualToggle"
+      type="button"
+      class="collapsible-header"
+      aria-expanded="false"
+      aria-controls="manualBody"
+    >
+      <span class="collapsible-title">Manual inventory entry</span>
+      <span class="collapsible-caret" aria-hidden="true">▸</span>
+    </button>
+
+    <div class="collapsible-body" id="manualBody">
+      <div class="collapsible-inner">
+        <div class="row">
+          <label>Title</label>
+          <input id="manualTitle" type="text" placeholder="e.g. Logitech keyboard" />
+        </div>
+
+        <div class="row">
+          <label>Cost total</label>
+          <input id="manualCost" type="text" placeholder="e.g. 12.34" />
+        </div>
+
+        <div class="row">
+          <label>System</label>
+          <select id="manualSystem">
+            <option value="MAN" selected>MAN</option>
+            <option value="GW">GW</option>
+            <option value="EB">EB</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>Item ID (optional)</label>
+          <input id="manualItemId" type="text" placeholder="leave blank to auto-generate" />
+        </div>
+
+        <div class="row">
+          <label>Mode</label>
+          <select id="manualMode">
+            <option value="single" selected>Single (unlisted)</option>
+            <option value="container">Container (needs split)</option>
+          </select>
+        </div>
+
+        <div class="row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button id="manualCreateBtn" type="button" class="btn">Add</button>
+          <div id="manualCreateMsg" class="muted"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const card = document.getElementById("manualCard");
+      const toggle = document.getElementById("manualToggle");
+      const body = document.getElementById("manualBody");
+
+      function setOpen(open) {
+        card.classList.toggle("is-open", open);
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      }
+
+      // Click header to toggle
+      toggle.addEventListener("click", () => {
+        const open = !card.classList.contains("is-open");
+        setOpen(open);
+        if (open) {
+          // focus first field on open
+          setTimeout(() => document.getElementById("manualTitle")?.focus(), 0);
+        }
+      });
+
+      // Manual create logic (kept from your existing block)
+      const btn = document.getElementById("manualCreateBtn");
+      const msg = document.getElementById("manualCreateMsg");
+
+      btn.addEventListener("click", async () => {
+        msg.textContent = "";
+
+        const payload = {
+          title: document.getElementById("manualTitle").value.trim(),
+          cost_total: document.getElementById("manualCost").value.trim() || 0,
+          system_code: document.getElementById("manualSystem").value,
+          item_id: document.getElementById("manualItemId").value.trim() || null,
+          mode: document.getElementById("manualMode").value,
+        };
+
+        if (!payload.title) {
+          msg.textContent = "❌ Title is required.";
+          setOpen(true);
+          return;
+        }
+
+        const res = await fetch("/api/inventory/manual", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          msg.textContent = "❌ " + (data.detail || data.error || "Failed");
+          setOpen(true);
+          return;
+        }
+
+        msg.textContent = `✅ Created #${data.id} (${data.sku})`;
+
+        // Refresh lists without full reload (keeps the UI snappy)
+        try {
+          await refreshCounts();
+          // If they created a container, it will show in Needs Split; otherwise Unlisted.
+          await loadNeedsSplit();
+          await loadUnlisted();
+        } catch (e) {
+          // fallback: old behavior
+          window.location.reload();
+        }
+      });
+
+      // Default: start collapsed
+      setOpen(false);
+    })();
+  </script>
+
   <div class="card">
     <!-- Tabs -->
-    <div class="tabs">
+    <div class="tabs tabs--nowrap">
       <button id="tabNeedsSplit" type="button" class="tab">Needs Split</button>
       <button id="tabUnlisted" type="button" class="tab">Unlisted</button>
 
@@ -361,7 +490,6 @@ Case"></textarea>
 
     async function refreshAll() {
       await refreshCounts();
-      // load whichever tab is active without forcing both
       if (document.getElementById("tabNeedsSplit").classList.contains("active")) {
         await loadNeedsSplit();
       } else {
@@ -371,7 +499,6 @@ Case"></textarea>
 
     document.getElementById("refreshBtn").addEventListener("click", refreshAll);
 
-    // initial load
     (async () => {
       await refreshCounts();
       const root = document.getElementById("inventoryPage");

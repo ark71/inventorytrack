@@ -5,6 +5,7 @@ import json
 import sqlite3
 
 from ..utils.money import money_to_cents, cents_to_float
+from ..utils.sku import sku_base
 
 
 def build_missing_inventory_items(conn: sqlite3.Connection) -> dict:
@@ -39,32 +40,35 @@ def build_missing_inventory_items(conn: sqlite3.Connection) -> dict:
     inserted = 0
 
     for r in rows:
-        # Work in cents to avoid float drift
         item_c = money_to_cents(r["item_price"])
-        tax_c  = money_to_cents(r["tax"])
+        tax_c = money_to_cents(r["tax"])
         fees_c = money_to_cents(r["additional_fee"])
         ship_c = money_to_cents(r["shipping_price"])
         hand_c = money_to_cents(r["handling_price"])
-        don_c  = money_to_cents(r["donation"])
+        don_c = money_to_cents(r["donation"])
 
         total_c = item_c + tax_c + fees_c + ship_c + hand_c + don_c
 
         qty = 1  # Goodwill quantity is untrusted
+        status = "needs_split"
 
-        # You said this endpoint is leftover; historically you chose "unlisted" here.
-        status = "unlisted"
+        goodwill_item_id = str(r["goodwill_item_id"] or "").strip()
+        base_sku = sku_base("GW", goodwill_item_id) if goodwill_item_id else None
 
         attrs = {
             "source": "shopgoodwill",
-            "goodwill_item_id": str(r["goodwill_item_id"] or "").strip(),
+            "goodwill_item_id": goodwill_item_id,
             "goodwill_order_number": str(r["goodwill_order_number"] or "").strip(),
         }
+        if base_sku:
+            attrs["sku_base"] = base_sku
 
         conn.execute(
             """
             INSERT INTO inventory_items (
               purchase_line_id,
               title, category, quantity, status,
+              sku,
               cost_item_price, cost_tax, cost_fees, cost_shipping, cost_handling, cost_donation,
               cost_total, cost_method,
               acquired_date,
@@ -73,6 +77,7 @@ def build_missing_inventory_items(conn: sqlite3.Connection) -> dict:
               updated_at
             ) VALUES (
               ?, ?, ?, ?, ?,
+              ?,
               ?, ?, ?, ?, ?, ?,
               ?, 'from_purchase_line_allocated',
               ?,
@@ -87,6 +92,7 @@ def build_missing_inventory_items(conn: sqlite3.Connection) -> dict:
                 r["category"],
                 qty,
                 status,
+                base_sku,
                 cents_to_float(item_c),
                 cents_to_float(tax_c),
                 cents_to_float(fees_c),
@@ -95,7 +101,7 @@ def build_missing_inventory_items(conn: sqlite3.Connection) -> dict:
                 cents_to_float(don_c),
                 cents_to_float(total_c),
                 r["acquired_date"],
-                json.dumps(attrs),
+                json.dumps(attrs, separators=(",", ":"), sort_keys=True),
             ),
         )
         inserted += 1

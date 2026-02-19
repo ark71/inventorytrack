@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Body, HTTPException
 from ..db import db_connect, DB_PATH
 from ..services.split import split_with_titles
+from ..repo.inventory_repo import insert_manual_inventory_item
 
 router = APIRouter()
 
@@ -184,4 +185,65 @@ def data_summary():
         }
     finally:
         conn.close()
+
+@router.post("/api/inventory/manual")
+def create_manual_container(payload: dict = Body(...)):
+    try:
+        title = payload.get("title")
+        category = payload.get("category")
+        condition = payload.get("condition")
+        cost_total = payload.get("cost_total")
+        acquired_date = payload.get("acquired_date")
+        system_code = payload.get("system_code", "MAN")
+        item_id = payload.get("item_id")
+
+        with get_conn() as conn:  # however you currently obtain conn
+            out = inventory_repo.insert_manual_container(
+                conn,
+                title=title,
+                category=category,
+                condition=condition,
+                cost_total=cost_total,
+                acquired_date=acquired_date,
+                system_code=system_code,
+                item_id=item_id,
+            )
+            conn.commit()
+            return {"ok": True, **out}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/api/inventory/manual")
+def create_manual_inventory(payload: dict = Body(...)):
+    """
+    JSON body:
+      title (required)
+      category, condition, acquired_date (optional)
+      cost_total (optional, default 0)
+      system_code (optional, default MAN)   # must be in CANONICAL_SYSTEM_CODES
+      item_id (optional)                   # if omitted -> INV<db_id>
+      mode: "single" (default) or "container"
+    """
+    try:
+        # Use whatever DB connection helper your file already uses.
+        # Example pattern (adjust to your project):
+        conn = get_conn()  # <-- replace with your existing connection getter
+        try:
+            out = insert_manual_inventory_item(
+                conn,
+                title=payload.get("title"),
+                category=payload.get("category"),
+                condition=payload.get("condition"),
+                acquired_date=payload.get("acquired_date"),
+                cost_total=payload.get("cost_total", 0),
+                system_code=payload.get("system_code", "MAN"),
+                item_id=payload.get("item_id"),
+                mode=payload.get("mode", "single"),
+            )
+            conn.commit()
+            return {"ok": True, **out}
+        finally:
+            conn.close()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 

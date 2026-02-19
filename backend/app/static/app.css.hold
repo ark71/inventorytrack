@@ -33,12 +33,6 @@
   --font-size: 15px;
 }
 
-/* Prevent layout shift when vertical scrollbar appears/disappears */
-html { scrollbar-gutter: stable; }
-
-/* Fallback: always show vertical scrollbar (works everywhere) */
-body { overflow-y: scroll; }
-
 /* ===== Business Themes ===== */
 
 :root[data-theme="goodwill"] {
@@ -379,19 +373,6 @@ main.container { padding-top: calc(var(--space) * 1.5); }
 
 .tabs {
   margin-bottom: 1rem;
-}
-
-.tabs.tabs--nowrap {
-  flex-wrap: nowrap;
-}
-
-.tabs-right {
-  margin-left: auto;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: nowrap;
-  white-space: nowrap;
 }
 
 .tab {
