@@ -3,8 +3,22 @@
 
 {% block content %}
 <div class="page">
-  <h1>Admin</h1>
-  <p class="small">System tools & maintenance</p>
+
+  <div class="admin-header">
+    <h1>Admin</h1>
+
+    <div class="health-pill" title="Checks /healthz">
+      <div id="healthIndicator" class="health-dot"></div>
+      <div id="healthLabel" class="health-label">Checking…</div>
+
+      <div class="health-actions">
+        <button type="button" onclick="checkHealth()">Check</button>
+        <a class="navlink" href="/healthz" target="_blank" style="padding:6px 10px; border-radius:999px;">JSON</a>
+      </div>
+    </div>
+  </div>
+
+  <p class="small">System tools &amp; maintenance</p>
 
   <div class="row">
     {% for t in tools %}
@@ -20,12 +34,45 @@
               <button type="submit">Run</button>
             </form>
           {% else %}
-            <a class="navlink" href="{{ t.href }}">Open</a>
+            <a class="navlink" href="{{ t.href }}"
+               {% if t.href.startswith('/docs') %}
+               target="_blank"
+               {% endif %}
+            >Open</a>
           {% endif %}
         </div>
       </div>
     {% endfor %}
   </div>
 </div>
+
+<script>
+async function checkHealth() {
+  const dot = document.getElementById("healthIndicator");
+  const label = document.getElementById("healthLabel");
+
+  dot.classList.remove("ok", "bad");
+  label.textContent = "Checking…";
+
+  try {
+    const res = await fetch("/healthz", { cache: "no-store" });
+    const data = await res.json();
+
+    if (data && data.ok === true) {
+      dot.classList.add("ok");
+      label.textContent = "Healthy";
+    } else {
+      dot.classList.add("bad");
+      label.textContent = "Unhealthy";
+    }
+  } catch (e) {
+    dot.classList.add("bad");
+    label.textContent = "Down";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", checkHealth);
+</script>
+
 {% endblock %}
 
