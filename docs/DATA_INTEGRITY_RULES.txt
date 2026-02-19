@@ -1,0 +1,34 @@
+Data Integrity Rules:
+
+Golden Rule:
+Every monetary transformation must preserve total invariants.
+
+Purchase Rules:
+- ShopGoodwill Order # may contain multiple Item IDs.
+- Shipping, handling, donation, additional_fee are order-level.
+- Tax is order-level total.
+- Order-level costs allocated proportionally by base item_price.
+
+Inventory Rules:
+- Each purchase_line produces exactly one container inventory_item.
+- Container cost_total must equal full allocated line total.
+- Split children must sum exactly to container cost_total.
+- No silent rounding drift allowed.
+
+Split Rules:
+- Locked costs subtract first.
+- Remaining distributed evenly.
+- Extra penny rule applied deterministically.
+- Never allow over-allocation.
+- Never allow negative remainder.
+
+DB Rules:
+- Never delete schema in wipe scripts.
+- Wipe scripts clear data only.
+- Always backup before destructive operations.
+
+Mindset:
+Auditable.
+Deterministic.
+Mathematically provable.
+

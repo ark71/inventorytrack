@@ -1,0 +1,57 @@
+Engineering Principles:
+
+1. Determinism Over Convenience
+   Every calculation must be reproducible.
+   No hidden state.
+   No silent side effects.
+   Same inputs → same outputs.
+
+2. Financial Correctness Is Absolute
+   A single penny discrepancy is a defect.
+   Rounding behavior must be explicit.
+   Invariants must be provable.
+
+3. Separation of Concerns
+   - Routes handle HTTP only.
+   - Services contain business logic.
+   - Repo layer handles persistence.
+   - Utils contain pure functions.
+   - Templates contain no logic beyond display.
+
+4. Explicit > Implicit
+   No “magic” defaults that hide behavior.
+   Allocation strategies must be named.
+   Cost methods stored explicitly in DB.
+
+5. Refactor Toward Clarity
+   If a file exceeds cognitive limits, split it.
+   If logic feels mixed, separate it.
+   Small functions > long procedural blocks.
+
+6. Test What Matters
+   Test invariants.
+   Test allocation math.
+   Test failure paths.
+   UI polish does not require heavy testing.
+   Financial logic always does.
+
+7. Backward Safety
+   When changing allocation rules:
+   - Preserve old data.
+   - Never silently recompute historical costs.
+   - Changes apply only to future operations unless explicitly migrated.
+
+8. Minimal Surface Area
+   This is a local app.
+   No premature complexity.
+   No unnecessary frameworks.
+   No abstraction for abstraction’s sake.
+
+9. Operational Mindset
+   The system is a tool.
+   It should feel reliable, predictable, boring.
+   Boring is good.
+
+10. Code Should Read Like Policy
+    Business rules should be understandable from code.
+

@@ -1,0 +1,39 @@
+Deployment Model:
+
+Environment:
+- Local-only FastAPI app
+- SQLite database
+- Single-user (me)
+- Runs via run.sh
+- No external cloud dependencies
+
+Startup:
+- uvicorn backend.app.main:app --reload
+
+Backups:
+- Daily SQLite .backup
+- Stored in ~/Backups/InventoryTrack/
+- Filename includes timestamp
+- Never overwrite backups
+- Always backup before:
+  - wipe
+  - schema changes
+  - allocation refactors
+
+Git:
+- Code pushed to GitHub
+- Database NOT committed
+- requirements.txt maintained
+- .venv excluded
+
+Recovery:
+1. Restore .db file
+2. Restart app
+3. Rebuild inventory if needed
+4. Re-run pytest
+
+Future Expansion:
+- Optional migration to Postgres if multi-user
+- Optional Docker containerization
+- Optional read-only reporting dashboard
+

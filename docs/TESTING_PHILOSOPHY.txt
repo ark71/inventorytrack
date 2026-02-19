@@ -1,0 +1,37 @@
+Testing Philosophy:
+
+Goal:
+Guarantee financial correctness and invariants.
+Never allow rounding drift.
+Never silently corrupt cost allocations.
+
+Test Types:
+
+1. Unit Tests (pytest)
+   - money.py (Decimal conversion, rounding behavior)
+   - split allocation invariants
+   - locked cost scenarios
+   - proportional allocations
+   - edge cases (0 remaining, 1 child, many children)
+
+2. Invariant Tests
+   - sum(children) == parent
+   - sum(locked + unlocked) == container total
+   - order-level allocations sum exactly to order totals
+   - no floating-point drift
+
+3. Integration Tests
+   - Goodwill import → inventory build → split
+   - eBay import → revenue + fee consistency
+   - wipe + rebuild cycles
+
+Rules:
+- All currency logic uses Decimal
+- All currency stored in DB as REAL but calculated via Decimal
+- All rounding uses ROUND_HALF_UP
+- Always assert exact equality after rounding to 2 decimals
+- Never rely on float equality
+
+Mindset:
+If a penny is wrong, the system is wrong.
+

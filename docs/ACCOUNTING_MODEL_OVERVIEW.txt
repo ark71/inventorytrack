@@ -1,0 +1,64 @@
+Accounting Model Overview:
+
+Core Entities:
+
+1. Purchase (Order Level)
+   Represents a transaction from a source (ShopGoodwill, etc.)
+   Contains order-level totals.
+   May contain multiple purchase_lines.
+
+2. Purchase Line (Item ID Level)
+   Represents one Goodwill Item ID.
+   Contains:
+     - item_price (base)
+     - allocated tax
+     - allocated shipping
+     - allocated handling
+     - allocated donation
+     - allocated additional_fee
+   Total must equal full allocated portion of order.
+
+3. Inventory Item (Container)
+   Created from one purchase_line.
+   cost_total equals purchase_line allocated total.
+   Acts as split parent.
+
+4. Inventory Item (Child)
+   Created via split.
+   cost_total derived from container.
+   Locked or evenly allocated.
+
+5. eBay Order
+   Represents a sale.
+   Contains:
+     - revenue
+     - fees
+     - taxes
+     - shipping labels
+     - net earnings
+
+Cost Flow:
+
+Order Total
+→ Allocate proportionally to Purchase Lines
+→ Purchase Line Total
+→ Container Inventory Item
+→ Split into Child Items
+→ Child Cost Basis
+→ Sale Revenue
+→ Profit = Net Earnings − Cost Basis
+
+Invariant Guarantees:
+
+- Sum(purchase_lines) == purchase total
+- Container cost == purchase_line total
+- Sum(children) == container cost
+- Profit calculations use stored cost_total, never recomputed retroactively
+
+Design Philosophy:
+
+Costs are immutable once finalized.
+Historical data is never recalculated.
+All allocations are traceable.
+All totals reconcile.
+
