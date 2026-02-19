@@ -1,0 +1,53 @@
+Feature Acceptance Checklist:
+
+Before adding or merging any feature:
+
+☐ Does it affect monetary calculations?
+    - If yes, add unit tests.
+    - Verify invariants.
+
+☐ Does it change allocation behavior?
+    - Ensure sum integrity.
+    - Ensure no historical recalculation.
+    - Ensure deterministic rounding.
+
+☐ Does it introduce new state?
+    - Is it stored explicitly?
+    - Is it auditable?
+
+☐ Does it increase coupling?
+    - Should logic move to services?
+    - Should DB access move to repo?
+
+☐ Does it violate UI rules?
+    - All CSS in app.css?
+    - No inline styles?
+    - Matches business aesthetic?
+
+☐ Does it require schema change?
+    - Backup first.
+    - Document migration.
+    - Update wipe script if needed.
+
+☐ Does it impact split logic?
+    - Test locked cost cases.
+    - Test proportional distribution.
+    - Test extra penny rule.
+
+☐ Is it backward-safe?
+    - No silent mutation of old data.
+    - No automatic recomputation of historical cost_total.
+
+☐ Can it be explained in one paragraph?
+    If not, it may be too complex.
+
+☐ Does it make the system more reliable?
+    If it only adds complexity, reconsider.
+
+Deployment Check:
+
+☐ pytest passes
+☐ Backup created
+☐ No console errors
+☐ Manual spot-check of totals
+

@@ -6,21 +6,24 @@ import re
 from decimal import Decimal, ROUND_HALF_UP, ROUND_FLOOR
 from typing import Iterable, List
 
+
 def money_to_cents_strict(v) -> int:
     """
-    Convert a numeric string/number to integer cents, strict rounding to 2 decimals.
+    Strict money parser for locked split values.
+    Must be valid numeric input. Raises ValueError if invalid.
     """
     if v is None:
-        return 0
-    s = str(v).strip().replace(",", "")
-    if s == "":
-        return 0
-    # Allow $ and spaces
-    m = _cost_re.match(s)
-    if not m:
+        raise ValueError("Invalid money value")
+
+    s = str(v).strip()
+    if not s:
+        raise ValueError("Invalid money value")
+
+    try:
+        return money_to_cents(s)
+    except Exception:
         raise ValueError(f"Invalid money value: {v}")
-    d = Decimal(m.group(1)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-    return int((d * 100).to_integral_value(rounding=ROUND_HALF_UP))
+
 
 def cents_to_decimal_str(cents: int) -> str:
     return f"{(Decimal(cents) / Decimal(100)).quantize(Decimal('0.01'))}"

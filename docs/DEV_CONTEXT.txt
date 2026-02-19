@@ -1,0 +1,88 @@
+Project: InventoryTrack
+
+Type:
+Local-only FastAPI web app
+SQLite backend
+Single-user (me)
+Desktop-focused UI
+
+Architecture:
+- backend/app/main.py (thin entrypoint)
+- routes/
+    - pages.py (HTML pages)
+    - api_inventory.py
+    - api_imports.py
+    - api_dashboard.py
+    - admin.py
+- services/
+    - goodwill_import.py
+    - ebay_sold_import.py
+    - split.py
+    - inventory_build.py
+    - inventory.py
+- repo/
+    - inventory_repo.py
+    - import_files.py
+- utils/
+    - money.py (Decimal-based currency logic)
+    - text.py
+- templates/
+    - base.html
+    - inventory.html
+    - imports.html
+    - admin_home.html
+- static/
+    - app.css (ALL CSS goes here)
+    - theme.js
+
+Database:
+SQLite
+Cost tracking is cent-accurate.
+All cost allocation must:
+- Be deterministic
+- Preserve total invariants
+- Use Decimal for calculations
+- Round HALF_UP to 2 decimals
+- Guarantee sum(children) == parent
+
+Goodwill Import Rules:
+- Order # may contain multiple Item IDs.
+- Shipping, handling, donation, additional_fee are order-level.
+- Tax is order-level total (not per line).
+- Allocation across lines must be proportional by base item_price.
+- Invariants must hold exactly.
+
+Splitting Rules:
+- Container item has cost_total.
+- Child items may include locked costs.
+- Remaining cost distributed evenly.
+- Extra penny rule applies.
+- Must always balance exactly.
+
+Testing:
+pytest
+In-memory SQLite for tests
+Split invariants tested
+Money utilities tested
+
+UI Rules:
+- All CSS in app.css (never inline styles)
+- Clean card-based layout
+- Minimal but “business” aesthetic
+- Health indicator = small sensor pill (green/red)
+- No bloated UI components
+
+Admin Page:
+- Build inventory tool
+- Imports link
+- Inventory link
+- API docs link
+- Health check sensor button
+
+Philosophy:
+Lean.
+Deterministic.
+Auditable.
+No magic numbers.
+No silent rounding drift.
+

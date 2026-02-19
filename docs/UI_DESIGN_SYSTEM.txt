@@ -1,0 +1,37 @@
+UI Design System:
+
+Tone:
+Business.
+Calm.
+Operational.
+No fluff.
+No gradients unless subtle.
+No novelty UI.
+
+Layout:
+- Card-based panels
+- Clean spacing
+- Consistent border-radius
+- Subtle drop shadows
+- Responsive but desktop-first
+
+Rules:
+- ALL CSS in app.css
+- No inline styles
+- No component-specific CSS inside templates
+- Theme variables defined at :root
+- Dark theme = soft charcoal, not pure black
+- Light theme = neutral gray, not pure white
+
+Components:
+- Cards
+- Small health sensor indicator (green/red dot)
+- Clean table styling
+- Minimal nav bar
+- Subtle hover states
+- No oversized buttons
+
+Philosophy:
+The UI should disappear.
+It should feel like a tool, not a toy.
+
