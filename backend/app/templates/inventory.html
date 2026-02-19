@@ -4,138 +4,36 @@
 <div class="page" id="inventoryPage" data-view="{{ view }}">
   <h2>Inventory</h2>
 
-  <!-- Manual entry (collapsible) -->
-  <div class="card collapsible-card" id="manualCard">
-    <button
-      id="manualToggle"
-      type="button"
-      class="collapsible-header"
-      aria-expanded="false"
-      aria-controls="manualBody"
-    >
-      <span class="collapsible-title">Manual inventory entry</span>
-      <span class="collapsible-caret" aria-hidden="true">▸</span>
-    </button>
+  <!-- Unmatched Sales -->
+  <div class="card" id="unmatchedSalesCard">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+      <h3 style="margin:0;">Unmatched Sales</h3>
+      <div class="small">Sales imported from eBay that haven't been linked to an inventory item yet.</div>
+      <div style="margin-left:auto;" class="small"><b>Unmatched:</b> <span id="unmatchedSalesCount">...</span></div>
+      <button id="refreshUnmatchedBtn" type="button">Refresh</button>
+    </div>
 
-    <div class="collapsible-body" id="manualBody">
-      <div class="collapsible-inner">
-        <div class="row">
-          <label>Title</label>
-          <input id="manualTitle" type="text" placeholder="e.g. Logitech keyboard" />
-        </div>
-
-        <div class="row">
-          <label>Cost total</label>
-          <input id="manualCost" type="text" placeholder="e.g. 12.34" />
-        </div>
-
-        <div class="row">
-          <label>System</label>
-          <select id="manualSystem">
-            <option value="MAN" selected>MAN</option>
-            <option value="GW">GW</option>
-            <option value="EB">EB</option>
-          </select>
-        </div>
-
-        <div class="row">
-          <label>Item ID (optional)</label>
-          <input id="manualItemId" type="text" placeholder="leave blank to auto-generate" />
-        </div>
-
-        <div class="row">
-          <label>Mode</label>
-          <select id="manualMode">
-            <option value="single" selected>Single (unlisted)</option>
-            <option value="container">Container (needs split)</option>
-          </select>
-        </div>
-
-        <div class="row" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <button id="manualCreateBtn" type="button" class="btn">Add</button>
-          <div id="manualCreateMsg" class="muted"></div>
-        </div>
-      </div>
+    <div class="table-wrap" style="margin-top:12px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Sold At</th>
+            <th>Title</th>
+            <th>Net</th>
+            <th>SKU</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="unmatchedSalesBody">
+          <tr><td colspan="5">Loading...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <script>
-    (function () {
-      const card = document.getElementById("manualCard");
-      const toggle = document.getElementById("manualToggle");
-      const body = document.getElementById("manualBody");
-
-      function setOpen(open) {
-        card.classList.toggle("is-open", open);
-        toggle.setAttribute("aria-expanded", open ? "true" : "false");
-      }
-
-      // Click header to toggle
-      toggle.addEventListener("click", () => {
-        const open = !card.classList.contains("is-open");
-        setOpen(open);
-        if (open) {
-          // focus first field on open
-          setTimeout(() => document.getElementById("manualTitle")?.focus(), 0);
-        }
-      });
-
-      // Manual create logic (kept from your existing block)
-      const btn = document.getElementById("manualCreateBtn");
-      const msg = document.getElementById("manualCreateMsg");
-
-      btn.addEventListener("click", async () => {
-        msg.textContent = "";
-
-        const payload = {
-          title: document.getElementById("manualTitle").value.trim(),
-          cost_total: document.getElementById("manualCost").value.trim() || 0,
-          system_code: document.getElementById("manualSystem").value,
-          item_id: document.getElementById("manualItemId").value.trim() || null,
-          mode: document.getElementById("manualMode").value,
-        };
-
-        if (!payload.title) {
-          msg.textContent = "❌ Title is required.";
-          setOpen(true);
-          return;
-        }
-
-        const res = await fetch("/api/inventory/manual", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(payload),
-        });
-
-        const data = await res.json();
-        if (!res.ok || !data.ok) {
-          msg.textContent = "❌ " + (data.detail || data.error || "Failed");
-          setOpen(true);
-          return;
-        }
-
-        msg.textContent = `✅ Created #${data.id} (${data.sku})`;
-
-        // Refresh lists without full reload (keeps the UI snappy)
-        try {
-          await refreshCounts();
-          // If they created a container, it will show in Needs Split; otherwise Unlisted.
-          await loadNeedsSplit();
-          await loadUnlisted();
-        } catch (e) {
-          // fallback: old behavior
-          window.location.reload();
-        }
-      });
-
-      // Default: start collapsed
-      setOpen(false);
-    })();
-  </script>
-
   <div class="card">
     <!-- Tabs -->
-    <div class="tabs tabs--nowrap">
+    <div class="tabs">
       <button id="tabNeedsSplit" type="button" class="tab">Needs Split</button>
       <button id="tabUnlisted" type="button" class="tab">Unlisted</button>
 
@@ -192,12 +90,134 @@
       </div>
     </div>
 
+<div class="card">
+  <h3>Manual inventory entry</h3>
+
+  <div class="row">
+    <label>Title</label>
+    <input id="manualTitle" type="text" placeholder="e.g. Logitech keyboard" />
+  </div>
+
+  <div class="row">
+    <label>Cost total</label>
+    <input id="manualCost" type="text" placeholder="e.g. 12.34" />
+  </div>
+
+  <div class="row">
+    <label>System</label>
+    <select id="manualSystem">
+      <option value="MAN" selected>MAN</option>
+      <option value="GW">GW</option>
+      <option value="EB">EB</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <label>Item ID (optional)</label>
+    <input id="manualItemId" type="text" placeholder="leave blank to auto-generate" />
+  </div>
+
+  <div class="row">
+    <label>Mode</label>
+    <select id="manualMode">
+      <option value="single" selected>Single (unlisted)</option>
+      <option value="container">Container (needs split)</option>
+    </select>
+  </div>
+
+  <button id="manualCreateBtn" class="btn">Add</button>
+  <div id="manualCreateMsg" class="muted"></div>
+</div>
+
+<script>
+  (function () {
+    const btn = document.getElementById("manualCreateBtn");
+    const msg = document.getElementById("manualCreateMsg");
+
+    btn.addEventListener("click", async () => {
+      msg.textContent = "";
+
+      const payload = {
+        title: document.getElementById("manualTitle").value.trim(),
+        cost_total: document.getElementById("manualCost").value.trim() || 0,
+        system_code: document.getElementById("manualSystem").value,
+        item_id: document.getElementById("manualItemId").value.trim() || null,
+        mode: document.getElementById("manualMode").value,
+      };
+
+      if (!payload.title) {
+        msg.textContent = "❌ Title is required.";
+        return;
+      }
+
+      const res = await fetch("/api/inventory/manual", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        msg.textContent = "❌ " + (data.detail || data.error || "Failed");
+        return;
+      }
+
+      msg.textContent = `✅ Created #${data.id} (${data.sku})`;
+      // simplest + reliable refresh:
+      window.location.reload();
+    });
+  })();
+</script>
+
     <hr>
 
     <h3 style="margin-top:18px;">Result</h3>
     <div id="statusMsg" class="small" style="margin-top:10px;"></div>
     <pre id="result">{}</pre>
   </div>
+
+  <!-- Match Sale Dialog -->
+  <dialog id="matchSaleDialog" style="border:none;border-radius:12px;max-width:980px;width:95%;">
+    <div class="card" style="margin:0;">
+      <div style="display:flex;gap:12px;align-items:flex-start;">
+        <div style="flex:1;">
+          <h2 style="margin-top:0;">Match sale to inventory</h2>
+          <div class="small" id="matchSaleMeta"></div>
+        </div>
+        <button id="matchSaleCloseBtn" type="button">Close</button>
+      </div>
+
+      <hr>
+
+      <div class="row">
+        <label>Search</label>
+        <input id="matchSearch" type="text" placeholder="Search by SKU or title..." />
+      </div>
+
+      <div class="table-wrap" style="margin-top:10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Pick</th>
+              <th>Inventory Item</th>
+              <th>Cost</th>
+              <th>SKU</th>
+              <th>Location</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="matchCandidatesBody">
+            <tr><td colspan="6">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;align-items:center;">
+        <div class="small" id="matchSaleMsg" style="margin-right:auto;"></div>
+        <button id="matchConfirmBtn" type="button" class="btn">Match</button>
+      </div>
+    </div>
+  </dialog>
 
   <!-- Split Dialog -->
   <dialog id="splitDialog" style="border:none;border-radius:12px;max-width:900px;width:95%;">
@@ -271,6 +291,208 @@ Case"></textarea>
       document.getElementById("unconverted").textContent = j.unconverted_purchase_lines;
       document.getElementById("invcount").textContent = j.inventory_items;
     }
+
+    // ----- Unmatched Sales -----
+    let unmatchedSalesById = {};
+    let candidateInventoryCache = null; // loaded on-demand
+
+    async function loadUnmatchedSales() {
+      const body = document.getElementById("unmatchedSalesBody");
+      const countEl = document.getElementById("unmatchedSalesCount");
+      if (!body || !countEl) return;
+
+      body.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`;
+      countEl.textContent = "...";
+
+      const res = await fetch("/api/sales/unmatched?limit=200", { cache: "no-store" });
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        body.innerHTML = `<tr><td colspan="5">Failed to load unmatched sales.</td></tr>`;
+        countEl.textContent = "—";
+        return;
+      }
+
+      const rows = data.items || [];
+      unmatchedSalesById = {};
+      for (const r of rows) unmatchedSalesById[r.id] = r;
+
+      countEl.textContent = rows.length.toString();
+
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="5">No unmatched sales 🎉</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = rows.map(r => {
+        const soldAt = esc(r.sold_at || "");
+        const title = esc(r.title || "");
+        const net = (r.net_payout ?? 0).toFixed(2);
+        const sku = esc(r.sku || "");
+        return `
+          <tr>
+            <td>${soldAt || "<span class='small'>—</span>"}</td>
+            <td><b>${title}</b></td>
+            <td>$${net}</td>
+            <td>${sku || "<span class='small'>—</span>"}</td>
+            <td><button type="button" onclick="openMatchSaleDialog(${r.id})">Match</button></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function loadCandidateInventoryIfNeeded() {
+      if (candidateInventoryCache) return candidateInventoryCache;
+
+      // For now, we use the Unlisted endpoint as our candidate pool.
+      // (If you add a "listed" endpoint later, we can merge both.)
+      const res = await fetch("/api/inventory/unlisted", { cache: "no-store" });
+      const data = await res.json();
+      candidateInventoryCache = (data.items || []).map(x => ({
+        id: x.id,
+        title: x.title || "",
+        cost_total: x.cost_total ?? 0,
+        sku: x.sku || "",
+        location: x.location || "",
+        status: x.status || "unlisted",
+        acquired_date: x.acquired_date || ""
+      }));
+      return candidateInventoryCache;
+    }
+
+    let currentSaleToMatchId = null;
+    let currentChosenInventoryId = null;
+
+    function renderMatchCandidates(filterText) {
+      const body = document.getElementById("matchCandidatesBody");
+      if (!body) return;
+
+      const q = (filterText || "").trim().toLowerCase();
+
+      const rows = (candidateInventoryCache || []).filter(it => {
+        if (!q) return true;
+        return (
+          (it.sku || "").toLowerCase().includes(q) ||
+          (it.title || "").toLowerCase().includes(q) ||
+          (it.location || "").toLowerCase().includes(q)
+        );
+      }).slice(0, 200);
+
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="6">No matches.</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = rows.map(it => {
+        const checked = (it.id === currentChosenInventoryId) ? "checked" : "";
+        const title = esc(it.title);
+        const cost = (it.cost_total ?? 0).toFixed(2);
+        const sku = esc(it.sku || "");
+        const loc = esc(it.location || "");
+        const status = esc(it.status || "");
+        return `
+          <tr>
+            <td><input type="radio" name="matchPick" value="${it.id}" ${checked} onchange="pickInventoryForSale(${it.id})"></td>
+            <td><b>${title}</b><div class="small">${esc(it.acquired_date || "")}</div></td>
+            <td>$${cost}</td>
+            <td>${sku || "<span class='small'>—</span>"}</td>
+            <td>${loc || "<span class='small'>—</span>"}</td>
+            <td>${status}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    window.pickInventoryForSale = function (id) {
+      currentChosenInventoryId = id;
+      const msg = document.getElementById("matchSaleMsg");
+      if (msg) msg.textContent = "";
+    };
+
+    window.openMatchSaleDialog = async function (saleId) {
+      const sale = unmatchedSalesById[saleId];
+      if (!sale) return;
+
+      currentSaleToMatchId = saleId;
+      currentChosenInventoryId = null;
+
+      const metaEl = document.getElementById("matchSaleMeta");
+      const msgEl = document.getElementById("matchSaleMsg");
+      const searchEl = document.getElementById("matchSearch");
+      const bodyEl = document.getElementById("matchCandidatesBody");
+
+      if (msgEl) msgEl.textContent = "";
+      if (searchEl) searchEl.value = "";
+      if (bodyEl) bodyEl.innerHTML = `<tr><td colspan="6">Loading...</td></tr>`;
+
+      const net = (sale.net_payout ?? 0).toFixed(2);
+      metaEl.innerHTML = [
+        `<b>Sale #:</b> ${sale.id}`,
+        sale.sold_at ? `<b>Sold at:</b> ${esc(sale.sold_at)}` : "",
+        sale.sku ? `<b>SKU:</b> ${esc(sale.sku)}` : "",
+        `<b>Net payout:</b> $${net}`,
+        `<b>Title:</b> ${esc(sale.title || "")}`,
+      ].filter(Boolean).join("<br>");
+
+      await loadCandidateInventoryIfNeeded();
+      renderMatchCandidates("");
+
+      const dlg = document.getElementById("matchSaleDialog");
+      dlg.showModal();
+      setTimeout(() => document.getElementById("matchSearch")?.focus(), 0);
+    };
+
+    document.getElementById("matchSaleCloseBtn").addEventListener("click", () => {
+      document.getElementById("matchSaleDialog").close();
+    });
+
+    document.getElementById("matchSearch").addEventListener("input", (e) => {
+      renderMatchCandidates(e.target.value || "");
+    });
+
+    document.getElementById("matchConfirmBtn").addEventListener("click", async () => {
+      const msgEl = document.getElementById("matchSaleMsg");
+      if (!currentSaleToMatchId) return;
+
+      if (!currentChosenInventoryId) {
+        if (msgEl) msgEl.textContent = "❌ Pick an inventory item first.";
+        return;
+      }
+
+      if (msgEl) msgEl.textContent = "Matching...";
+
+      const res = await fetch("/api/sales/match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sale_id: currentSaleToMatchId, inventory_item_id: currentChosenInventoryId })
+      });
+
+      const txt = await res.text();
+      let parsed = null;
+      try { parsed = JSON.parse(txt); } catch {}
+
+      if (!res.ok || (parsed && parsed.ok === False)) {
+        const err = (parsed && (parsed.detail || parsed.error)) ? (parsed.detail || parsed.error) : txt;
+        if (msgEl) msgEl.textContent = "❌ " + err;
+        return;
+      }
+
+      if (msgEl) msgEl.textContent = "✅ Matched.";
+      // remove from table immediately for snappiness
+      delete unmatchedSalesById[currentSaleToMatchId];
+      document.getElementById("matchSaleDialog").close();
+      // refresh counts + panels
+      await loadUnmatchedSales();
+      await refreshCounts();
+      // inventory list might change status
+      candidateInventoryCache = null;
+      await loadUnlisted();
+    });
+
+    document.getElementById("refreshUnmatchedBtn").addEventListener("click", () => {
+      candidateInventoryCache = null;
+      loadUnmatchedSales();
+    });
 
     // ----- Tabs -----
     function setActiveTab(tab) {
@@ -474,6 +696,7 @@ Case"></textarea>
       if (parsed && parsed.ok) {
         setStatus(`✅ Split complete: created ${parsed.inserted_children} items ($${(parsed.allocated_each_cost_total ?? 0).toFixed(2)} each).`);
         await refreshCounts();
+        await loadUnmatchedSales();
         await loadNeedsSplit();
         await loadUnlisted();
         document.getElementById("splitDialog").close();
@@ -490,6 +713,8 @@ Case"></textarea>
 
     async function refreshAll() {
       await refreshCounts();
+      await loadUnmatchedSales();
+      // load whichever tab is active without forcing both
       if (document.getElementById("tabNeedsSplit").classList.contains("active")) {
         await loadNeedsSplit();
       } else {
@@ -499,8 +724,10 @@ Case"></textarea>
 
     document.getElementById("refreshBtn").addEventListener("click", refreshAll);
 
+    // initial load
     (async () => {
       await refreshCounts();
+      await loadUnmatchedSales();
       const root = document.getElementById("inventoryPage");
       const initial = (root?.dataset?.view || "needs_split").toString();
       setActiveTab(initial === "unlisted" ? "unlisted" : "needs_split");
