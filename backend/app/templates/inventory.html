@@ -1,64 +1,105 @@
 {% extends "base.html" %}
-{% block title %}InventoryTrack - Inventory{% endblock %}
 {% block content %}
-<div class="page" id="inventoryPage" data-view="{{ view }}">
-  <h2>Inventory</h2>
 
-  <!-- Unmatched Sales -->
-  <div class="card" id="unmatchedSalesCard">
-    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-      <h3 style="margin:0;">Unmatched Sales</h3>
-      <div class="small">Sales imported from eBay that haven't been linked to an inventory item yet.</div>
-      <div style="margin-left:auto;" class="small"><b>Unmatched:</b> <span id="unmatchedSalesCount">...</span></div>
-      <button id="refreshUnmatchedBtn" type="button">Refresh</button>
-    </div>
-
-    <div class="table-wrap" style="margin-top:12px;">
-      <table>
-        <thead>
-          <tr>
-            <th>Sold At</th>
-            <th>Title</th>
-            <th>Net</th>
-            <th>SKU</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="unmatchedSalesBody">
-          <tr><td colspan="5">Loading...</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <div class="card">
-    <!-- Tabs -->
-    <div class="tabs">
-      <button id="tabNeedsSplit" type="button" class="tab">Needs Split</button>
-      <button id="tabUnlisted" type="button" class="tab">Unlisted</button>
-
-      <div style="margin-left:auto; display:flex; gap:12px; align-items:center;">
-        <div><b>Unconverted purchase lines:</b> <span id="unconverted">...</span></div>
-        <div><b>Inventory items:</b> <span id="invcount">...</span></div>
-        <button id="refreshBtn" type="button">Refresh</button>
+<div id="inventoryPage" data-view="{{ view or 'needs_split' }}">
+  <div class="page-header">
+    <div>
+      <h1>Inventory</h1>
+      <div class="small">
+        Unconverted purchase lines: <b id="unconverted">—</b>
+        &nbsp;•&nbsp;
+        Inventory items: <b id="invcount">—</b>
       </div>
     </div>
 
-    <hr>
+    <div class="page-actions">
+      <button id="refreshBtn" type="button">Refresh</button>
+    </div>
+  </div>
 
-    <!-- Needs Split Panel -->
+  <!-- Manual Inventory Entry (drawer) -->
+  <details class="card" id="manualEntryDrawer">
+    <summary class="drawer-summary">
+      <div class="drawer-summary-left">
+        <div class="drawer-title">Manual inventory entry</div>
+        <div class="small">Add an item that didn’t come from an import</div>
+      </div>
+      <div class="drawer-summary-right small">Click to open</div>
+    </summary>
+
+    <div class="drawer-body">
+      <div class="grid-2">
+        <div>
+          <label class="label">Title</label>
+          <input id="man_title" placeholder="e.g., Xbox controller" />
+        </div>
+
+        <div>
+          <label class="label">SKU (optional)</label>
+          <input id="man_sku" placeholder="e.g., MAN-ABC123-01" />
+        </div>
+
+        <div>
+          <label class="label">Category</label>
+          <input id="man_category" placeholder="e.g., Electronics" />
+        </div>
+
+        <div>
+          <label class="label">Condition</label>
+          <input id="man_condition" placeholder="e.g., Used - Good" />
+        </div>
+
+        <div>
+          <label class="label">Location</label>
+          <input id="man_location" placeholder="e.g., Bin A3" />
+        </div>
+
+        <div>
+          <label class="label">Acquired date</label>
+          <input id="man_acquired" placeholder="YYYY-MM-DD" />
+        </div>
+
+        <div>
+          <label class="label">Cost total</label>
+          <input id="man_cost_total" placeholder="e.g., 12.34" />
+        </div>
+
+        <div>
+          <label class="label">Notes</label>
+          <input id="man_notes" placeholder="optional" />
+        </div>
+      </div>
+
+      <div class="row" style="justify-content:flex-end;">
+        <button id="manualCreateBtn" type="button">Create Manual Item</button>
+      </div>
+
+      <pre id="manualCreateResult" class="pre">{}</pre>
+    </div>
+  </details>
+
+  <div class="card">
+    <div class="tabs">
+      <button id="tabNeedsSplit" type="button" class="tab active">Needs Split</button>
+      <button id="tabUnlisted" type="button" class="tab">Unlisted</button>
+    </div>
+
     <div id="panelNeedsSplit">
-      <h2>Needs Split (Goodwill Lots)</h2>
-      <p class="small">These are container lots (1 per Goodwill Item ID). Split them into sellable child items.</p>
+      <div class="section-header">
+        <div>
+          <h2>Containers needing split</h2>
+          <div class="small">Split containers into child items with exact balancing.</div>
+        </div>
+      </div>
 
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
               <th>Container</th>
-              <th>Goodwill</th>
-              <th>Cost Total</th>
-              <th>Action</th>
+              <th>Source</th>
+              <th>Cost</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="needsSplitBody">
@@ -68,9 +109,13 @@
       </div>
     </div>
 
-    <!-- Unlisted Panel -->
     <div id="panelUnlisted" style="display:none;">
-      <h2>Unlisted Items (Ready to SKU / Store / List)</h2>
+      <div class="section-header">
+        <div>
+          <h2>Unlisted</h2>
+          <div class="small">Assign SKU / Location (or update them) before listing.</div>
+        </div>
+      </div>
 
       <div class="table-wrap">
         <table>
@@ -80,7 +125,7 @@
               <th>Cost</th>
               <th>SKU</th>
               <th>Location</th>
-              <th>Save</th>
+              <th></th>
             </tr>
           </thead>
           <tbody id="unlistedBody">
@@ -90,146 +135,353 @@
       </div>
     </div>
 
-    <!-- Manual entry -->
-    <div class="card">
-      <h3>Manual inventory entry</h3>
-
-      <div class="row">
-        <label>Title</label>
-        <input id="manualTitle" type="text" placeholder="e.g. Logitech keyboard" />
-      </div>
-
-      <div class="row">
-        <label>Cost total</label>
-        <input id="manualCost" type="text" placeholder="e.g. 12.34" />
-      </div>
-
-      <div class="row">
-        <label>System</label>
-        <select id="manualSystem">
-          <option value="MAN" selected>MAN</option>
-          <option value="GW">GW</option>
-          <option value="EB">EB</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <label>Item ID (optional)</label>
-        <input id="manualItemId" type="text" placeholder="leave blank to auto-generate" />
-      </div>
-
-      <div class="row">
-        <label>Mode</label>
-        <select id="manualMode">
-          <option value="single" selected>Single (unlisted)</option>
-          <option value="container">Container (needs split)</option>
-        </select>
-      </div>
-
-      <button id="manualCreateBtn" class="btn" type="button">Add</button>
-      <div id="manualCreateMsg" class="muted"></div>
+    <div class="status-row">
+      <div id="statusMsg" class="small"></div>
     </div>
 
-    <hr>
-
-    <h3 style="margin-top:18px;">Result</h3>
-    <div id="statusMsg" class="small" style="margin-top:10px;"></div>
-    <pre id="result">{}</pre>
+    <pre id="result" class="pre">{}</pre>
   </div>
 
-  <!-- Match Sale Dialog -->
-  <dialog id="matchSaleDialog" style="border:none;border-radius:12px;max-width:980px;width:95%;">
-    <div class="card" style="margin:0;">
-      <div style="display:flex;gap:12px;align-items:flex-start;">
-        <div style="flex:1;">
-          <h2 style="margin-top:0;">Match sale to inventory</h2>
-          <div class="small" id="matchSaleMeta"></div>
-        </div>
-        <button id="matchSaleCloseBtn" type="button">Close</button>
-      </div>
-
-      <hr>
-
-      <div class="row">
-        <label>Search</label>
-        <input id="matchSearch" type="text" placeholder="Search by SKU or title..." />
-      </div>
-
-      <div class="table-wrap" style="margin-top:10px;">
-        <table>
-          <thead>
-            <tr>
-              <th>Pick</th>
-              <th>Inventory Item</th>
-              <th>Cost</th>
-              <th>SKU</th>
-              <th>Location</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="matchCandidatesBody">
-            <tr><td colspan="6">Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;align-items:center;">
-        <div class="small" id="matchSaleMsg" style="margin-right:auto;"></div>
-        <button id="matchConfirmBtn" type="button" class="btn">Match</button>
-      </div>
-    </div>
-  </dialog>
-
-  <!-- Split Dialog -->
-  <dialog id="splitDialog" style="border:none;border-radius:12px;max-width:900px;width:95%;">
-    <div class="card" style="margin:0;">
-      <div style="display:flex;gap:12px;align-items:flex-start;">
-        <div style="flex:1;">
-          <h2 style="margin-top:0;">Split lot</h2>
-          <div class="small" id="splitMeta"></div>
+  <!-- Split dialog -->
+  <dialog id="splitDialog">
+    <div class="dialog-card">
+      <div class="dialog-header">
+        <div>
+          <h3>Split container</h3>
+          <div id="splitMeta" class="small"></div>
         </div>
         <button id="splitCloseBtn" type="button">Close</button>
       </div>
 
       <hr>
 
-      <div class="small">One item per line. Optional locked cost: Title | 12.34:</div>
-      <textarea id="splitTitles" rows="10" style="width:100%;margin-top:8px;"
+      <div class="small">One item per line. Optional locked cost: <b>Title | 12.34</b></div>
+      <textarea id="splitTitles" rows="10" class="textarea"
         placeholder="Example:
 Mario Kart DS (loose)
 Nintendo charger
 Stylus
 Case"></textarea>
 
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;">
+      <div class="row">
         <span class="small">Helper:</span>
         <input id="splitCount" type="number" min="1" max="500" value="10" style="width:90px;">
         <button id="genLinesBtn" type="button">Generate placeholders</button>
         <span class="small">(then type over them)</span>
       </div>
 
-      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+      <div class="row" style="justify-content:flex-end;">
         <button id="splitSubmitBtn" type="button">Create Items</button>
       </div>
 
-      <pre id="splitResult" style="margin-top:12px;">{}</pre>
+      <pre id="splitResult" class="pre">{}</pre>
     </div>
   </dialog>
+
+  <script>
+    function esc(s) {
+      return (s ?? "").toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;");
+    }
+
+    function openMiniWindow(url) {
+      const w = 980;
+      const h = 780;
+      const left = Math.max(0, Math.round((window.screen.width - w) / 2));
+      const top  = Math.max(0, Math.round((window.screen.height - h) / 2));
+      const features = [
+        `width=${w}`,
+        `height=${h}`,
+        `left=${left}`,
+        `top=${top}`,
+        "resizable=yes",
+        "scrollbars=yes",
+        "toolbar=no",
+        "menubar=no",
+        "location=yes",
+        "status=no"
+      ].join(",");
+      const win = window.open(url, "_blank", features);
+      if (win) win.focus();
+      return false;
+    }
+
+    function setStatus(msg) {
+      const el = document.getElementById("statusMsg");
+      if (!el) return;
+      el.textContent = msg || "";
+    }
+
+    async function refreshCounts() {
+      const res = await fetch("/inventory/status", { cache: "no-store" });
+      const j = await res.json();
+      document.getElementById("unconverted").textContent = j.unconverted_purchase_lines;
+      document.getElementById("invcount").textContent = j.inventory_items;
+    }
+
+    // ----- Tabs -----
+    function setActiveTab(tab) {
+      const needsBtn = document.getElementById("tabNeedsSplit");
+      const unlistBtn = document.getElementById("tabUnlisted");
+
+      const needsPanel = document.getElementById("panelNeedsSplit");
+      const unlistPanel = document.getElementById("panelUnlisted");
+
+      const isNeeds = tab === "needs_split";
+
+      needsPanel.style.display = isNeeds ? "" : "none";
+      unlistPanel.style.display = isNeeds ? "none" : "";
+
+      needsBtn.classList.toggle("active", isNeeds);
+      unlistBtn.classList.toggle("active", !isNeeds);
+
+      if (isNeeds) loadNeedsSplit();
+      else loadUnlisted();
+    }
+
+    document.getElementById("tabNeedsSplit").onclick = () => setActiveTab("needs_split");
+    document.getElementById("tabUnlisted").onclick = () => setActiveTab("unlisted");
+
+    // ----- Needs Split -----
+    let needsSplitById = {};
+
+    async function loadNeedsSplit() {
+      const body = document.getElementById("needsSplitBody");
+      body.innerHTML = `<tr><td colspan="4">Loading...</td></tr>`;
+
+      const res = await fetch("/api/inventory/needs_split", { cache: "no-store" });
+      const data = await res.json();
+      const rows = data.items || [];
+
+      needsSplitById = {};
+      for (const r of rows) needsSplitById[r.id] = r;
+
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="4">No containers need split 🎉</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = rows.map(r => {
+        const title = esc(r.title);
+        const meta = `<div class="small">${esc(r.category || "")}<br>${esc(r.acquired_date || "")}</div>`;
+
+        const itemId = esc(r.goodwill_item_id || "");
+        const orderNum = esc(r.order_number || "");
+
+        const itemUrl = itemId ? `https://shopgoodwill.com/item/${itemId}` : "";
+        const orderUrl = orderNum ? `https://shopgoodwill.com/shopgoodwill/order/${orderNum}` : "";
+
+        const goodwill = `
+          <div>
+            <div>
+              <b>Item ID:</b>
+              ${
+                itemId
+                  ? `<a href="${itemUrl}" onclick="return openMiniWindow('${itemUrl}')" target="_blank" rel="noopener noreferrer">${itemId}</a>`
+                  : `<span class="small">—</span>`
+              }
+            </div>
+            <div class="small" style="margin-top:6px;">
+              <b>Order #:</b>
+              ${
+                orderNum
+                  ? `<a href="${orderUrl}" onclick="return openMiniWindow('${orderUrl}')" target="_blank" rel="noopener noreferrer">${orderNum}</a>`
+                  : `<span>—</span>`
+              }
+            </div>
+          </div>
+        `;
+
+        const cost = (r.cost_total ?? 0).toFixed(2);
+
+        return `
+          <tr>
+            <td><b>${title}</b>${meta}</td>
+            <td>${goodwill}</td>
+            <td>$${cost}</td>
+            <td><button type="button" onclick="openSplitDialogById(${r.id})">Split (enter titles)</button></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function openSplitDialogById(id) {
+      const r = needsSplitById[id];
+      if (!r) return;
+      openSplitDialog(
+        r.id,
+        (r.title || "").toString(),
+        (r.goodwill_item_id || "").toString(),
+        (r.order_number || "").toString()
+      );
+    }
+
+    // ----- Unlisted -----
+    async function loadUnlisted() {
+      const body = document.getElementById("unlistedBody");
+      body.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`;
+
+      const res = await fetch("/api/inventory/unlisted", { cache: "no-store" });
+      const data = await res.json();
+      const rows = data.items || [];
+
+      if (!rows.length) {
+        body.innerHTML = `<tr><td colspan="5">No unlisted items 🎉</td></tr>`;
+        return;
+      }
+
+      body.innerHTML = rows.map(r => {
+        const title = esc(r.title);
+        const cost = (r.cost_total ?? 0).toFixed(2);
+        return `
+          <tr>
+            <td><b>${title}</b><div class="small">${esc(r.acquired_date || "")}</div></td>
+            <td>$${cost}</td>
+            <td><input id="sku_${r.id}" value="${esc(r.sku || "")}" placeholder="SKU" style="width:140px;"></td>
+            <td><input id="loc_${r.id}" value="${esc(r.location || "")}" placeholder="Bin/Shelf" style="width:140px;"></td>
+            <td><button type="button" onclick="saveItem(${r.id})">Save</button></td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function saveItem(id) {
+      const sku = document.getElementById(`sku_${id}`).value || "";
+      const location = document.getElementById(`loc_${id}`).value || "";
+      const out = document.getElementById("result");
+      out.textContent = "Saving...";
+
+      const res = await fetch(`/inventory/update/${id}?sku=${encodeURIComponent(sku)}&location=${encodeURIComponent(location)}`, {
+        method: "POST"
+      });
+
+      const txt = await res.text();
+      try { out.textContent = JSON.stringify(JSON.parse(txt), null, 2); }
+      catch { out.textContent = txt; }
+
+      await refreshCounts();
+    }
+
+    // ----- Split dialog logic -----
+    let currentSplitId = null;
+
+    function openSplitDialog(containerId, containerTitle, goodwillItemId, orderNum) {
+      currentSplitId = containerId;
+
+      const itemUrl = goodwillItemId ? `https://shopgoodwill.com/item/${goodwillItemId}` : "";
+      const orderUrl = orderNum ? `https://shopgoodwill.com/shopgoodwill/order/${orderNum}` : "";
+
+      const metaLines = [];
+      metaLines.push(`<b>Container:</b> ${esc(containerTitle)}`);
+      if (goodwillItemId) metaLines.push(`<b>Item ID:</b> <a href="${itemUrl}" target="_blank" rel="noopener noreferrer">${esc(goodwillItemId)}</a>`);
+      if (orderNum) metaLines.push(`<b>Order #:</b> <a href="${orderUrl}" target="_blank" rel="noopener noreferrer">${esc(orderNum)}</a>`);
+
+      document.getElementById("splitMeta").innerHTML = metaLines.join("<br>");
+      document.getElementById("splitTitles").value = "";
+      document.getElementById("splitResult").textContent = "{}";
+
+      document.getElementById("splitDialog").showModal();
+      setTimeout(() => document.getElementById("splitTitles").focus(), 0);
+    }
+
+    document.getElementById("splitCloseBtn").addEventListener("click", () => {
+      document.getElementById("splitDialog").close();
+    });
+
+    document.getElementById("genLinesBtn").addEventListener("click", () => {
+      const n = parseInt(document.getElementById("splitCount").value || "1", 10);
+      const lines = [];
+      for (let i = 1; i <= Math.min(Math.max(n, 1), 500); i++) lines.push(`Item ${i}`);
+      document.getElementById("splitTitles").value = lines.join("\n");
+    });
+
+    document.getElementById("splitSubmitBtn").addEventListener("click", async () => {
+      const out = document.getElementById("splitResult");
+      const titlesText = document.getElementById("splitTitles").value || "";
+
+      out.textContent = "Working...";
+
+      const res = await fetch(`/inventory/split-with-titles/${currentSplitId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ titles_text: titlesText })
+      });
+
+      const txt = await res.text();
+      let parsed = null;
+      try { parsed = JSON.parse(txt); } catch {}
+
+      out.textContent = parsed ? JSON.stringify(parsed, null, 2) : txt;
+
+      if (parsed && parsed.ok) {
+        setStatus(`✅ Split complete: created ${parsed.inserted_children} items ($${(parsed.allocated_each_cost_total ?? 0).toFixed(2)} each).`);
+        await refreshCounts();
+        await loadNeedsSplit();
+        await loadUnlisted();
+        document.getElementById("splitDialog").close();
+      } else if (parsed && parsed.error) {
+        setStatus(`⚠️ Split failed: ${parsed.error}`);
+      }
+    });
+
+    // ----- Manual create (assumes you already have an API route for this) -----
+    // If your endpoint is different, change URL + payload here.
+    document.getElementById("manualCreateBtn").addEventListener("click", async () => {
+      const out = document.getElementById("manualCreateResult");
+      out.textContent = "Working...";
+
+      const payload = {
+        title: document.getElementById("man_title").value || "",
+        sku: document.getElementById("man_sku").value || "",
+        category: document.getElementById("man_category").value || "",
+        condition: document.getElementById("man_condition").value || "",
+        location: document.getElementById("man_location").value || "",
+        acquired_date: document.getElementById("man_acquired").value || "",
+        cost_total: document.getElementById("man_cost_total").value || "",
+        notes: document.getElementById("man_notes").value || ""
+      };
+
+      const res = await fetch("/api/inventory/manual_create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const txt = await res.text();
+      try { out.textContent = JSON.stringify(JSON.parse(txt), null, 2); }
+      catch { out.textContent = txt; }
+
+      if (res.ok) {
+        // close drawer for nice UX
+        document.getElementById("manualEntryDrawer").open = false;
+        await refreshCounts();
+        // new item likely shows up in Unlisted
+        setActiveTab("unlisted");
+      }
+    });
+
+    async function refreshAll() {
+      await refreshCounts();
+      if (document.getElementById("tabNeedsSplit").classList.contains("active")) {
+        await loadNeedsSplit();
+      } else {
+        await loadUnlisted();
+      }
+    }
+
+    document.getElementById("refreshBtn").addEventListener("click", refreshAll);
+
+    // initial load
+    (async () => {
+      await refreshCounts();
+      const root = document.getElementById("inventoryPage");
+      const initial = (root?.dataset?.view || "needs_split").toString();
+      setActiveTab(initial === "unlisted" ? "unlisted" : "needs_split");
+    })();
+  </script>
 </div>
 
-<!-- Inventory page scripts (no build step; lean globals) -->
-<script defer src="/static/inventory/state.js"></script>
-<script defer src="/static/inventory/api.js"></script>
-<script defer src="/static/inventory/render.js"></script>
-<script defer src="/static/inventory/sales_match.js"></script>
-<script defer src="/static/inventory/inventory_lists.js"></script>
-<script defer src="/static/inventory/split_dialog.js"></script>
-<script defer src="/static/inventory/manual_entry.js"></script>
-<script defer src="/static/inventory/page.js"></script>
-<script>
-  window.addEventListener("DOMContentLoaded", () => {
-    window.InventoryPage.init({ initialView: "{{ view }}" });
-  });
-</script>
 {% endblock %}
 
