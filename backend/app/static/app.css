@@ -577,3 +577,21 @@ main.container { padding-top: calc(var(--space) * 1.5); }
   border-radius: 14px;
 }
 
+/* ---------- Utility layout helpers (Sales dialog, etc.) ---------- */
+.row-align-center {
+  align-items: center;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.dialog-actions {
+  justify-content: flex-end;
+  margin-top: 22px;
+}
+
+/* margin helpers */
+.mt-10 {
+  margin-top: 10px;
+}
