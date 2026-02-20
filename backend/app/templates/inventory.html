@@ -27,59 +27,68 @@
       <div class="drawer-summary-right small">Click to open</div>
     </summary>
 
-    <div class="drawer-body">
-      <!-- 2-column layout; Notes + Result span both columns -->
-      <div class="manual-form-grid">
-        <div class="field">
-          <label class="label" for="man_title">Title</label>
-          <input id="man_title" placeholder="e.g., Xbox controller" />
-        </div>
-
-        <div class="field">
-          <label class="label" for="man_sku">SKU (optional)</label>
-          <input id="man_sku" placeholder="e.g., MAN-ABC123-01" />
-        </div>
-
-        <div class="field">
-          <label class="label" for="man_category">Category</label>
-          <input id="man_category" placeholder="e.g., Electronics" />
-        </div>
-
-        <div class="field">
-          <label class="label" for="man_condition">Condition</label>
-          <input id="man_condition" placeholder="e.g., Used - Good" />
-        </div>
-
-        <div class="field">
-          <label class="label" for="man_location">Location</label>
-          <input id="man_location" placeholder="e.g., Bin A3" />
-        </div>
-
-        <div class="field">
-          <label class="label" for="man_acquired">Acquired date</label>
-          <input id="man_acquired" placeholder="YYYY-MM-DD" />
-        </div>
-
-        <div class="field">
-          <label class="label" for="man_cost_total">Cost total</label>
-          <input id="man_cost_total" placeholder="e.g., 12.34" />
-        </div>
-
-        <div class="field span-2">
-          <label class="label" for="man_notes">Notes</label>
-          <textarea id="man_notes" class="textarea" rows="3" placeholder="optional"></textarea>
-        </div>
-
-        <div class="field span-2">
-          <pre id="manualCreateResult" class="pre">{}</pre>
-        </div>
-      </div>
-        <div class="field field-actions">
-          <label class="label">&nbsp;</label>
-          <button id="manualCreateBtn" type="button">Create Manual Item</button>
-        </div>
-
+<div class="drawer-body">
+  <!-- 2-column layout; Notes + Result + Action span both columns -->
+  <div class="manual-form-grid">
+    <div class="field">
+      <label class="label" for="man_title">Title</label>
+      <input id="man_title" placeholder="e.g., Xbox controller" />
     </div>
+
+    <div class="field">
+      <label class="label" for="man_sku">SKU (optional)</label>
+      <input id="man_sku" placeholder="e.g., MAN-ABC123-01" />
+    </div>
+
+    <div class="field">
+      <label class="label" for="man_category">Category</label>
+      <input id="man_category" placeholder="e.g., Electronics" />
+    </div>
+
+    <div class="field">
+      <label class="label" for="man_condition">Condition</label>
+      <input id="man_condition" placeholder="e.g., Used - Good" />
+    </div>
+
+    <div class="field">
+      <label class="label" for="man_location">Location</label>
+      <input id="man_location" placeholder="e.g., Bin A3" />
+    </div>
+
+    <div class="field">
+      <label class="label" for="man_acquired">Acquired date</label>
+      <input id="man_acquired" placeholder="YYYY-MM-DD" />
+    </div>
+
+    <div class="field">
+      <label class="label" for="man_cost_total">Cost total</label>
+      <input id="man_cost_total" placeholder="e.g., 12.34" />
+    </div>
+
+    <div class="field">
+      <label class="label" for="man_mode">Mode</label>
+      <select id="man_mode">
+        <option value="single" selected>Single item (unlisted)</option>
+        <option value="container">Container (needs split)</option>
+      </select>
+    </div>
+
+    <div class="field span-2">
+      <label class="label" for="man_notes">Notes</label>
+      <textarea id="man_notes" class="textarea" rows="3" placeholder="optional"></textarea>
+    </div>
+
+    <div class="field span-2">
+      <pre id="manualCreateResult" class="pre">{}</pre>
+    </div>
+
+    <!-- centered, compact button BELOW notes/result -->
+    <div class="field span-2 manual-actions">
+      <button id="manualCreateBtn" type="button" class="btn btn-compact">Create Manual Item</button>
+    </div>
+  </div>
+</div>
+
   </details>
 
   <div class="card">
@@ -444,6 +453,7 @@ Case"></textarea>
         location: document.getElementById("man_location").value || "",
         acquired_date: document.getElementById("man_acquired").value || "",
         cost_total: document.getElementById("man_cost_total").value || "",
+	mode: document.getElementById("man_mode")?.value || "single",
         notes: document.getElementById("man_notes").value || ""
       };
 
