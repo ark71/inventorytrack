@@ -28,53 +28,57 @@
     </summary>
 
     <div class="drawer-body">
-      <div class="grid-2">
-        <div>
-          <label class="label">Title</label>
+      <!-- 2-column layout; Notes + Result span both columns -->
+      <div class="manual-form-grid">
+        <div class="field">
+          <label class="label" for="man_title">Title</label>
           <input id="man_title" placeholder="e.g., Xbox controller" />
         </div>
 
-        <div>
-          <label class="label">SKU (optional)</label>
+        <div class="field">
+          <label class="label" for="man_sku">SKU (optional)</label>
           <input id="man_sku" placeholder="e.g., MAN-ABC123-01" />
         </div>
 
-        <div>
-          <label class="label">Category</label>
+        <div class="field">
+          <label class="label" for="man_category">Category</label>
           <input id="man_category" placeholder="e.g., Electronics" />
         </div>
 
-        <div>
-          <label class="label">Condition</label>
+        <div class="field">
+          <label class="label" for="man_condition">Condition</label>
           <input id="man_condition" placeholder="e.g., Used - Good" />
         </div>
 
-        <div>
-          <label class="label">Location</label>
+        <div class="field">
+          <label class="label" for="man_location">Location</label>
           <input id="man_location" placeholder="e.g., Bin A3" />
         </div>
 
-        <div>
-          <label class="label">Acquired date</label>
+        <div class="field">
+          <label class="label" for="man_acquired">Acquired date</label>
           <input id="man_acquired" placeholder="YYYY-MM-DD" />
         </div>
 
-        <div>
-          <label class="label">Cost total</label>
+        <div class="field">
+          <label class="label" for="man_cost_total">Cost total</label>
           <input id="man_cost_total" placeholder="e.g., 12.34" />
         </div>
 
-        <div>
-          <label class="label">Notes</label>
-          <input id="man_notes" placeholder="optional" />
+        <div class="field span-2">
+          <label class="label" for="man_notes">Notes</label>
+          <textarea id="man_notes" class="textarea" rows="3" placeholder="optional"></textarea>
+        </div>
+
+        <div class="field span-2">
+          <pre id="manualCreateResult" class="pre">{}</pre>
         </div>
       </div>
+        <div class="field field-actions">
+          <label class="label">&nbsp;</label>
+          <button id="manualCreateBtn" type="button">Create Manual Item</button>
+        </div>
 
-      <div class="row" style="justify-content:flex-end;">
-        <button id="manualCreateBtn" type="button">Create Manual Item</button>
-      </div>
-
-      <pre id="manualCreateResult" class="pre">{}</pre>
     </div>
   </details>
 
@@ -484,4 +488,3 @@ Case"></textarea>
 </div>
 
 {% endblock %}
-

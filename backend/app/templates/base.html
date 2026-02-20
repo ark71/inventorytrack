@@ -18,27 +18,22 @@
 </head>
 
 <body>
-  <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand">
-        <span class="brand-dot"></span>
-        <span class="brand-name">InventoryTrack</span>
-      </div>
-
-      <nav class="nav">
-        <a class="navlink {% if active_page=='home' %}active{% endif %}" href="/">Home</a>
-        <a class="navlink {% if active_page=='imports' %}active{% endif %}" href="/imports">Imports</a>
-        <a class="navlink {% if active_page=='inventory' %}active{% endif %}" href="/inventory">Inventory</a>
-	<a class="navlink {% if active_page=='admin' %}active{% endif %}" href="/admin">Admin</a>
-      </nav>
-
-      <div class="topbar-right">
-        <!-- placeholder for later: theme picker / search / user -->
-        <span class="small">Local</span>
-      </div>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span class="brand-name">InventoryTrack</span>
     </div>
-  </header>
 
+    <nav class="nav">
+      <a class="navlink {% if active_page=='home' %}active{% endif %}" href="/">Home</a>
+      <a class="navlink {% if active_page=='imports' %}active{% endif %}" href="/imports">Imports</a>
+      <a class="navlink {% if active_page=='inventory' %}active{% endif %}" href="/inventory">Inventory</a>
+      <a class="navlink {% if active_page=='sales' %}active{% endif %}" href="/sales">Sales</a>
+      <a class="navlink {% if active_page=='admin' %}active{% endif %}" href="/admin">Admin</a>
+    </nav>
+  </div>
+</header>
   <main class="container">
     {% block content %}{% endblock %}
   </main>
