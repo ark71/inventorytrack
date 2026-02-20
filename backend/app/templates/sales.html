@@ -9,6 +9,7 @@
     </div>
 
     <div class="page-actions">
+      <button id="autoMatchBtn" type="button">Auto-match by SKU</button>
       <button id="refreshUnmatchedBtn" type="button">Refresh</button>
     </div>
   </div>
@@ -95,18 +96,15 @@
         .replaceAll(">","&gt;");
     }
 
-    // ----- Unmatched Sales -----
     let unmatchedSalesById = {};
     let candidateInventoryCache = null;
 
     async function loadUnmatchedSales() {
       const body = document.getElementById("unmatchedSalesBody");
       const countEl = document.getElementById("unmatchedSalesCount");
-      const out = document.getElementById("salesResult");
 
       body.innerHTML = `<tr><td colspan="5">Loading...</td></tr>`;
       countEl.textContent = "...";
-      out.textContent = "{}";
 
       const res = await fetch("/api/sales/unmatched?limit=200", { cache: "no-store" });
       const data = await res.json();
@@ -114,7 +112,6 @@
       if (!res.ok || !data.ok) {
         body.innerHTML = `<tr><td colspan="5">Failed to load unmatched sales.</td></tr>`;
         countEl.textContent = "—";
-        out.textContent = JSON.stringify(data, null, 2);
         return;
       }
 
@@ -149,7 +146,7 @@
     async function loadCandidateInventoryIfNeeded() {
       if (candidateInventoryCache) return candidateInventoryCache;
 
-      // Using Unlisted as our candidate pool (same as before).
+      // Candidate pool: Unlisted items (safe/simple to start)
       const res = await fetch("/api/inventory/unlisted", { cache: "no-store" });
       const data = await res.json();
       candidateInventoryCache = (data.items || []).map(x => ({
@@ -240,7 +237,7 @@
       ].filter(Boolean).join("<br>");
 
       await loadCandidateInventoryIfNeeded();
-      renderMatchCandidates("");
+      renderMatchCandidates(sale.sku || "");
 
       const dlg = document.getElementById("matchSaleDialog");
       dlg.showModal();
@@ -286,13 +283,32 @@
       delete unmatchedSalesById[currentSaleToMatchId];
       document.getElementById("matchSaleDialog").close();
 
-      candidateInventoryCache = null; // refresh pool
+      candidateInventoryCache = null;
       await loadUnmatchedSales();
     });
 
     document.getElementById("refreshUnmatchedBtn").addEventListener("click", () => {
       candidateInventoryCache = null;
       loadUnmatchedSales();
+    });
+
+    // NEW: Auto-match by SKU
+    document.getElementById("autoMatchBtn").addEventListener("click", async () => {
+      const out = document.getElementById("salesResult");
+      out.textContent = "Running auto-match...";
+
+      const res = await fetch("/api/sales/auto_match_sku", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ limit: 2000, mark_sold: true })
+      });
+
+      const txt = await res.text();
+      try { out.textContent = JSON.stringify(JSON.parse(txt), null, 2); }
+      catch { out.textContent = txt; }
+
+      candidateInventoryCache = null;
+      await loadUnmatchedSales();
     });
 
     (async () => {
