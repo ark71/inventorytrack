@@ -219,3 +219,27 @@ ON purchases(source, order_number);
 CREATE UNIQUE INDEX ux_purchase_lines_purchase_item
 
 ON purchase_lines(purchase_id, item_id);
+CREATE TABLE sales (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  inventory_item_id INTEGER REFERENCES inventory_items(id) ON DELETE SET NULL,
+  source TEXT NOT NULL,
+  import_file_id INTEGER REFERENCES import_files(id) ON DELETE SET NULL,
+  source_sale_key TEXT NOT NULL,
+  sku TEXT,
+  sold_at TEXT,
+  title TEXT,
+  quantity INTEGER NOT NULL DEFAULT 1,
+  gross_amount REAL,
+  fees_total REAL,
+  shipping_cost REAL,
+  tax_amount REAL,
+  net_payout REAL,
+  currency TEXT NOT NULL DEFAULT 'USD',
+  raw_sale_json TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(source, source_sale_key)
+);
+CREATE TABLE sqlite_sequence(name,seq);
+CREATE INDEX idx_sales_inventory_item ON sales(inventory_item_id);
+CREATE INDEX idx_sales_sold_at ON sales(sold_at);
+CREATE INDEX idx_sales_sku ON sales(sku);
