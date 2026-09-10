@@ -9,10 +9,10 @@ from datetime import datetime
 from pathlib import Path
 
 
-DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parent / "schema_from_working_db.sql"
+DEFAULT_SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 
 # REQUIRED core tables for the app to function.
-# If schema_from_working_db.sql does not define these, it is stale and we fall back.
+# If schema.sql does not define these, it is stale and we fall back.
 REQUIRED_TABLES: set[str] = {
     "import_files",
     "purchases",
@@ -257,7 +257,7 @@ def _extract_created_tables(schema_sql: str) -> set[str]:
 def _load_schema_sql(schema_path: Path) -> tuple[str, str]:
     """
     Returns (schema_sql, source_label).
-    Prefer schema_from_working_db.sql, but if it is missing OR stale (missing required tables),
+    Prefer schema.sql, but if it is missing OR stale (missing required tables),
     fall back to embedded schema.
     """
     if not schema_path.exists():
@@ -398,7 +398,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--schema",
         default=str(DEFAULT_SCHEMA_PATH),
-        help="Path to schema SQL file exported from working DB (default: ./schema_from_working_db.sql)",
+        help="Path to schema SQL file exported from working DB (default: ./schema.sql)",
     )
     parser.add_argument(
         "--force",

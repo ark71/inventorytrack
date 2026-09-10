@@ -3,7 +3,7 @@ Deployment Model:
 Environment:
 - Local-only FastAPI app
 - SQLite database
-- Single-user (me)
+- Single-user deployment
 - Runs via run.sh
 - No external cloud dependencies
 
